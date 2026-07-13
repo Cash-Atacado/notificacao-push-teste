@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importação de Planilha</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+            padding: 32px 16px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ── Cabeçalho ── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .header-icon {
+            width: 44px;
+            height: 44px;
+            background: #267e00;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 18px;
+        }
+
+        /* ── Upload ── */
+        .upload-area {
+            border: 2px dashed #d0d0d0;
+            border-radius: 10px;
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #267e00;
+            background: #4dff000f;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon { font-size: 36px; margin-bottom: 10px; }
+
+        .upload-area p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .upload-area strong {
+            color: #267e00;
+        }
+
+        .file-info {
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Botões ── */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn:hover  { opacity: 0.88; }
+
+        .btn-primary {
+            background: #267e00;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+
+        /* ── Alerta de erro ── */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fff0f0;
+            border: 1px solid #f5c6c6;
+            color: #a00;
+        }
+
+        /* ── Resumo da importação ── */
+        .summary {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            flex: 1;
+            min-width: 140px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .summary-card.ok {
+            background: #edfbf3;
+            border: 1px solid #b2dfcc;
+        }
+
+        .summary-card.err {
+            background: #fff0f0;
+            border: 1px solid #f5c6c6;
+        }
+
+        .summary-card .num {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .summary-card.ok .num  { color: #1a7f4b; }
+        .summary-card.err .num { color: #a00; }
+
+        .summary-card .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* ── Log ── */
+        .log-list {
+            max-height: 360px;
+            overflow-y: auto;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-item:last-child { border-bottom: none; }
+        .log-item.ok  { background: #fafffe; }
+        .log-item.err { background: #fffafa; }
+
+        .log-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .log-badge.ok  { background: #d4f5e4; color: #1a7f4b; }
+        .log-badge.err { background: #fdd;    color: #a00; }
+
+        .log-linha {
+            color: #999;
+            font-size: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .log-msg { color: #444; word-break: break-word; }
+
+        /* ── Preview ── */
+        .preview-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .preview-table th {
+            background: #f4f4f4;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid #e0e0e0;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+
+        .preview-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+            color: #333;
+        }
+
+        .preview-table tr:last-child td { border-bottom: none; }
+        .preview-table tr:hover td { background: #fafafa; }
+
+        .preview-info {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>Importação de Planilha</h1>
+        </div>
+    </div>
+
+    <!-- Alerta de erro de validação -->
+    {% if erro %}
+    <div class="alert alert-error">⚠️ {{ erro }}</div>
+    {% endif %}
+
+    <!-- Card de upload -->
+    <div class="card">
+        <div class="card-title">Arquivo</div>
+
+        <form method="POST" enctype="multipart/form-data" id="form-upload">
+
+            <div class="upload-area" id="upload-area">
+                <input type="file" name="file" id="file-input" accept=".xlsx,.xls"
+                       onchange="mostrarArquivo(this)">
+                
+                <p><strong>Clique para selecionar</strong> ou arraste o arquivo aqui</p>
+                <p style="margin-top:6px; font-size:12px; color:#aaa;">Aceita .xlsx e .xls</p>
+            </div>
+
+            <div class="file-info" id="file-info" style="display:none">
+                📄 <span id="file-name"></span>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" type="submit" name="visualizar">
+                    Visualizar Planilha
+                </button>
+                <button class="btn btn-primary" type="submit" name="importar"
+                        onclick="return confirmarImportacao()">
+                    Importar para o Banco
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Resultado da importação -->
+    {% if logs %}
+    <div class="card">
+        <div class="card-title">Resultado da Importação — {{ nome_arquivo }}</div>
+
+        <div class="summary">
+            <div class="summary-card ok">
+                <div class="num">{{ sucessos }}</div>
+                <div class="label">Importados com sucesso</div>
+            </div>
+            <div class="summary-card err">
+                <div class="num">{{ erros }}</div>
+                <div class="label">Erros</div>
+            </div>
+        </div>
+
+        <div class="log-list">
+            {% for log in logs %}
+            <div class="log-item {{ log.status }}">
+                <span class="log-linha">Linha {{ log.linha }}</span>
+                <span class="log-badge {{ log.status }}">
+                    {% if log.status == 'ok' %}✓ OK{% else %}✗ ERRO{% endif %}
+                </span>
+                <span class="log-msg">{{ log.msg }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Preview da planilha -->
+    {% if preview %}
+    <div class="card">
+        <div class="card-title">Preview — {{ nome_arquivo }}</div>
+        <p class="preview-info">Exibindo as primeiras 20 linhas de {{ total_linhas }} encontradas.</p>
+        <div class="preview-wrapper">
+            {{ preview | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function mostrarArquivo(input) {
+        const info = document.getElementById("file-info");
+        const name = document.getElementById("file-name");
+        if (input.files.length > 0) {
+            name.textContent = input.files[0].name;
+            info.style.display = "flex";
+        }
+    }
+
+    function confirmarImportacao() {
+        const input = document.getElementById("file-input");
+        if (!input.files.length) {
+            alert("Selecione um arquivo antes de importar.");
+            return false;
+        }
+        return confirm("Confirma a importação para o banco de dados?");
+    }
+</script>
+</body>
+</html>
