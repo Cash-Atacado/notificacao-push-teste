@@ -79,5 +79,18 @@ async function registerForPushNotificationsAsync() {
         handleRegistrationError("ID do Projeto não encontrado")
     }
 
+    // se passou por todas as permissões, tenta pegar o pushToken da aplicação
+    try {
+        const pushTokenString = (
+            await Notifications.getExpoPushTokenAsync({
+                projectId,
+            })
+        ).data;
 
+        console.log(pushTokenString);
+        return pushTokenString;
+    } catch (e: unknown) {
+        handleRegistrationError(`${e}`);
+    }
+    
 }
