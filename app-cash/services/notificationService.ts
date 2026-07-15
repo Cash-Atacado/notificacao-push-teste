@@ -18,7 +18,7 @@ Notifications.setNotificationHandler({
     }),
 });
 
-// função responsável por enviar notificações
+// função responsável por enviar notificações (possivelmente mover para o backend)
 async function sendPushNotification(expoPushToken: string, produto: Produto) {
 
     const message = {
@@ -26,7 +26,6 @@ async function sendPushNotification(expoPushToken: string, produto: Produto) {
         sound: 'default',
         title: 'Houve uma atualização em um produto',
         body: `${produto.codigoProduto} - ${produto.descricao}`,
-        data: { produtoId: produto.id }
     }
 
     await fetch('https://exp.host/--/api/v2/push/send', {
@@ -51,7 +50,7 @@ async function registerForPushNotificationsAsync() {
 
     // caso o SO seja android
     if(Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('defailt', {
+        await Notifications.setNotificationChannelAsync('default', {
             name: 'default',
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [ 0, 250, 250, 250 ],

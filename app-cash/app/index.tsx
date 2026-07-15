@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
+
 import { Link } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -22,7 +23,7 @@ export default function WelcomeScreen() {
           <Text style={styles.textoTitulo}>Cash APP</Text>
         </View>
 
-        <Image
+       <Image
           source={require("../assets/cash_atacado.jpg")}
           style={styles.logo}
         />
